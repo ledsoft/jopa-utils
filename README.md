@@ -22,6 +22,14 @@ Map<String, String> props = new HashMap<>();
 props.put(JOPAPersistenceProperties.CLASSPATH_SCANNER_CLASS, BootAwareClasspathScanner.class.getName());
 ```
 
+Maven dependency:
+```xml
+<dependency>
+    <groupId>com.github.ledsoft</groupId>
+    <artifactId>jopa-spring-boot-loader</artifactId>
+</dependency>
+```
+
 ## Links
 
 Useful links:
