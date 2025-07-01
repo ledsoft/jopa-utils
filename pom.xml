@@ -6,7 +6,7 @@
 
     <groupId>com.github.ledsoft</groupId>
     <artifactId>jopa-utils</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <packaging>pom</packaging>
     <name>JOPA Utils</name>
     <description>
@@ -16,6 +16,7 @@
 
     <modules>
         <module>jopa-spring-boot-loader</module>
+        <module>jopa-data-utils</module>
     </modules>
 
     <properties>
@@ -23,6 +24,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <cz.cvut.kbss.jopa.version>2.4.1</cz.cvut.kbss.jopa.version>
     </properties>
 
     <dependencyManagement>
@@ -34,6 +36,18 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <!-- Set project version (recursively) -->
+            <!-- Usage mvn versions:set -DnewVersion=$version and then mvn versions:commit to confirm changes -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <profile>
