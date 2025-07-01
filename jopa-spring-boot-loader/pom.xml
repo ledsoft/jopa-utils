@@ -17,8 +17,8 @@
     </description>
 
     <properties>
-        <cz.cvut.kbss.jopa.version>2.2.2</cz.cvut.kbss.jopa.version>
-        <org.springframework.boot>3.4.2</org.springframework.boot>
+        <cz.cvut.kbss.jopa.version>2.4.1</cz.cvut.kbss.jopa.version>
+        <org.springframework.boot>3.5.3</org.springframework.boot>
     </properties>
 
     <dependencies>
