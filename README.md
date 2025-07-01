@@ -34,6 +34,15 @@ Maven dependency:
 
 Utilities for working with JOPA data.
 
+Example of getting incoming references of an entity:
+
+```java
+EntityManager em = // get EntityManager
+DataUtilities dataUtilities = new DataUtilities(em);
+
+List<Triple> triples = dataUtilities.getIncomingReferences(entityId);
+```
+
 Maven dependency:
 ```xml
 <dependency>
