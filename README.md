@@ -30,6 +30,18 @@ Maven dependency:
 </dependency>
 ```
 
+### Data Utilities
+
+Utilities for working with JOPA data.
+
+Maven dependency:
+```xml
+<dependency>
+    <groupId>com.github.ledsoft</groupId>
+    <artifactId>jopa-data-utils</artifactId>
+</dependency>
+```
+
 ## Links
 
 Useful links:
