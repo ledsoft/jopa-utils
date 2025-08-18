@@ -51,6 +51,11 @@ Maven dependency:
 </dependency>
 ```
 
+### JOPA Plugins
+
+A collection of utility plugins using the [JOPA Plugin API](https://github.com/kbss-cvut/jopa/wiki/Plugin-API). 
+See the [README.md](jopa-plugins/README.md) in the jopa-plugins module for details.
+
 ## Links
 
 Useful links:
