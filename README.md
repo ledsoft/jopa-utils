@@ -56,6 +56,14 @@ Maven dependency:
 A collection of utility plugins using the [JOPA Plugin API](https://github.com/kbss-cvut/jopa/wiki/Plugin-API). 
 See the [README.md](jopa-plugins/README.md) in the jopa-plugins module for details.
 
+Maven dependency:
+```xml
+<dependency>
+    <groupId>com.github.ledsoft</groupId>
+    <artifactId>jopa-plugins</artifactId>
+</dependency>
+```
+
 ## Links
 
 Useful links:
