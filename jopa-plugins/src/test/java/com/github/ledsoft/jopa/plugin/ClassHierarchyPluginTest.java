@@ -23,9 +23,11 @@ class ClassHierarchyPluginTest {
 
     @Test
     void afterPersistenceUnitCreatedInsertsHierarchyStatementsIntoDefaultContext() {
-        try (final EntityManagerFactory emf = Persistence.createEntityManagerFactory("testPU", commonPersistenceProps())) {
+        try (final EntityManagerFactory emf = Persistence.createEntityManagerFactory("testPU",
+                                                                                     commonPersistenceProps())) {
             try (final EntityManager em = emf.createEntityManager()) {
-                final TypedQuery<URI> query = em.createNativeQuery("SELECT ?parent WHERE { ?x rdfs:subClassOf ?parent }", URI.class);
+                final TypedQuery<URI> query =
+                        em.createNativeQuery("SELECT ?parent WHERE { ?x rdfs:subClassOf ?parent }", URI.class);
                 List<URI> parents = query.setParameter("x", URI.create("http://example.com/jopa-plugin/subclass"))
                                          .getResultList();
                 assertEquals(List.of(URI.create(OWL.THING)), parents);
@@ -55,7 +57,9 @@ class ClassHierarchyPluginTest {
         persistenceConfig.put(ClassHierarchyPlugin.TARGET_CONTEXT_CONFIG, context);
         try (final EntityManagerFactory emf = Persistence.createEntityManagerFactory("testPU", persistenceConfig)) {
             try (final EntityManager em = emf.createEntityManager()) {
-                final TypedQuery<URI> query = em.createNativeQuery("SELECT ?parent WHERE { GRAPH ?g { ?x rdfs:subClassOf ?parent } }", URI.class);
+                final TypedQuery<URI> query =
+                        em.createNativeQuery("SELECT ?parent WHERE { GRAPH ?g { ?x rdfs:subClassOf ?parent } }",
+                                             URI.class);
                 List<URI> parents = query.setParameter("x", URI.create("http://example.com/jopa-plugin/subclass"))
                                          .setParameter("g", URI.create(context))
                                          .getResultList();
@@ -65,6 +69,36 @@ class ClassHierarchyPluginTest {
                                .setParameter("g", URI.create(context))
                                .getResultList();
                 assertTrue(parents.isEmpty());
+            }
+        }
+    }
+
+    @Test
+    void afterPersistenceUnitCreatedInsertsRdfsClassStatementsWhenConfiguredTo() {
+        final Map<String, String> persistenceConfig = new HashMap<>(commonPersistenceProps());
+        persistenceConfig.put(ClassHierarchyPlugin.GENERATE_RDFS_CLASS_CONFIG, "true");
+        try (final EntityManagerFactory emf = Persistence.createEntityManagerFactory("testPU",
+                                                                                     persistenceConfig)) {
+            try (final EntityManager em = emf.createEntityManager()) {
+                final TypedQuery<Boolean> query = em.createNativeQuery("ASK WHERE { ?x a rdfs:Class }", Boolean.class);
+                assertTrue(query.setParameter("x", URI.create(OWL.THING)).getSingleResult());
+                assertTrue(query.setParameter("x", URI.create("http://example.com/jopa-plugin/subclass"))
+                                .getSingleResult());
+            }
+        }
+    }
+
+    @Test
+    void afterPersistenceUnitCreatedInsertsOwlClassStatementsWhenConfiguredTo() {
+        final Map<String, String> persistenceConfig = new HashMap<>(commonPersistenceProps());
+        persistenceConfig.put(ClassHierarchyPlugin.GENERATE_OWL_CLASS_CONFIG, "true");
+        try (final EntityManagerFactory emf = Persistence.createEntityManagerFactory("testPU",
+                                                                                     persistenceConfig)) {
+            try (final EntityManager em = emf.createEntityManager()) {
+                final TypedQuery<Boolean> query = em.createNativeQuery("ASK WHERE { ?x a owl:Class }", Boolean.class);
+                assertTrue(query.setParameter("x", URI.create(OWL.THING)).getSingleResult());
+                assertTrue(query.setParameter("x", URI.create("http://example.com/jopa-plugin/subclass"))
+                                .getSingleResult());
             }
         }
     }

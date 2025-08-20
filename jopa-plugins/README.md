@@ -9,5 +9,10 @@ It then inserts `rdfs:subClassOf` statements representing the discovered hierarc
 
 ### Configuration
 
-`com.github.ledsoft.jopa.plugin.classHierarchy.targetContext` can be used to specify the repository context (RDF named
-graph) into which the hierarchy statements should be inserted. If not set, they are added to the default context.
+| Property                                                          | Description                                                                                                                            |
+|:------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------|
+| `com.github.ledsoft.jopa.plugin.classHierarchy.targetContext`     | Repository context (RDF named graph) int which the model statements should be inserted. If not specified, the default context is used. |
+| `com.github.ledsoft.jopa.plugin.classHierarchy.generateOwlClass`  | Whether to also generate OWL class statements (`?x a owl:Class`). Takes precedence over RDFS class statements config (see below).      |
+| `com.github.ledsoft.jopa.plugin.classHierarchy.generateRdfsClass` | Whether to also generate RDFS class statements (`?x a rdfs:Class`).                                                                    |                                                                     |
+
+All the configuration properties are declared as public static fields on the `CLassHierarchyPlugin` class.
