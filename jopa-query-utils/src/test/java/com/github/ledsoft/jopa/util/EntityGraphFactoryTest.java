@@ -3,11 +3,13 @@ package com.github.ledsoft.jopa.util;
 import cz.cvut.kbss.jopa.Persistence;
 import cz.cvut.kbss.jopa.model.AttributeNode;
 import cz.cvut.kbss.jopa.model.EntityGraph;
+import cz.cvut.kbss.jopa.model.EntityGraphImpl;
 import cz.cvut.kbss.jopa.model.EntityManager;
 import cz.cvut.kbss.jopa.model.EntityManagerFactory;
 import cz.cvut.kbss.jopa.model.JOPAPersistenceProperties;
 import cz.cvut.kbss.jopa.model.JOPAPersistenceProvider;
 import cz.cvut.kbss.jopa.model.Subgraph;
+import cz.cvut.kbss.jopa.model.metamodel.EntityType;
 import cz.cvut.kbss.jopa.model.query.criteria.CriteriaBuilder;
 import cz.cvut.kbss.jopa.model.query.criteria.CriteriaQuery;
 import cz.cvut.kbss.jopa.model.query.criteria.Root;
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -88,5 +91,49 @@ class EntityGraphFactoryTest {
         final Subgraph<OnlineAccount> sg = an.getSubgraphs().get(OnlineAccount.class);
         assertEquals(1, sg.getAttributeNodes().size());
         assertEquals("accountName", sg.getAttributeNodes().get(0).getAttributeName());
+    }
+
+    @Test
+    void addAttributesToLoadAddsSpecifiedRootEntityAttributes() {
+        final EntityType<Person> et = em.getMetamodel().entity(Person.class);
+        final EntityGraph<Person> eg =
+                new EntityGraphImpl<>(et, em.getMetamodel()::entity);
+        // Note that the attributes would more likely be from a static metamodel, but we are not generating it here
+        sut.addAttributesToLoad(eg, List.of(et.getDeclaredAttribute("givenName"),
+                                            et.getDeclaredAttribute("familyName")));
+
+        assertEquals(2, eg.getAttributeNodes().size());
+        assertTrue(eg.getAttributeNodes().stream().anyMatch(an -> an.getAttributeName().equals("givenName")));
+        assertTrue(eg.getAttributeNodes().stream().anyMatch(an -> an.getAttributeName().equals("familyName")));
+    }
+
+    @Test
+    void addAttributesToLoadAddsSpecifiedSingularAttributesFromReferencedEntity() {
+        final EntityType<Person> et = em.getMetamodel().entity(Person.class);
+        final EntityType<OnlineAccount> etAccount = em.getMetamodel().entity(OnlineAccount.class);
+        final EntityGraph<Person> eg = new EntityGraphImpl<>(et, em.getMetamodel()::entity);
+        final Subgraph<?> accountSubgraph = eg.addSubgraph(et.getDeclaredAttribute("account"));
+        sut.addAttributesToLoad(eg, List.of(etAccount.getDeclaredAttribute("accountName")));
+
+        assertTrue(accountSubgraph.getAttributeNodes().stream()
+                                  .anyMatch(an -> an.getAttributeName().equals("accountName")));
+    }
+
+    @Test
+    void addAttributesToLoadAddsSpecifiedAttributesFromEntityReferencedViaCollection() {
+        final EntityType<Organization> etOrg = em.getMetamodel().entity(Organization.class);
+        final EntityType<Person> etPerson = em.getMetamodel().entity(Person.class);
+        final EntityGraph<Organization> eg = new EntityGraphImpl<>(etOrg, em.getMetamodel()::entity);
+        final Subgraph<?> personSubgraph = eg.addSubgraph(etOrg.getDeclaredAttribute("member"));
+        sut.addAttributesToLoad(eg, List.of(etPerson.getDeclaredAttribute("givenName"),
+                                            etPerson.getDeclaredAttribute("familyName"),
+                                            etOrg.getDeclaredAttribute("name")));
+
+        assertTrue(personSubgraph.getAttributeNodes().stream()
+                                  .anyMatch(an -> an.getAttributeName().equals("givenName")));
+        assertTrue(personSubgraph.getAttributeNodes().stream()
+                                  .anyMatch(an -> an.getAttributeName().equals("familyName")));
+        assertTrue(eg.getAttributeNodes().stream()
+                                  .anyMatch(an -> an.getAttributeName().equals("name")));
     }
 }
