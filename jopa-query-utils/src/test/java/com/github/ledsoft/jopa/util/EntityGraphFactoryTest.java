@@ -187,7 +187,8 @@ class EntityGraphFactoryTest {
         final EntityType<User> etUser = em.getMetamodel().entity(User.class);
         final EntityGraph<Organization> eg = new EntityGraphImpl<>(etOrg, em.getMetamodel()::entity);
         final Subgraph<?> userSubgraph = eg.addSubgraph(etOrg.getDeclaredAttribute("member"));
-        sut.addAttributesToLoad(eg, List.of(etOrg.getDeclaredAttribute("name"), etPerson.getAttribute("name"),
+        sut.addAttributesToLoad(eg, List.of(etOrg.getDeclaredAttribute("name"),
+                                            etPerson.getAttribute("name"),
                                             etUser.getAttribute("username")));
 
         assertTrue(userSubgraph.getAttributeNodes().stream()
@@ -196,5 +197,27 @@ class EntityGraphFactoryTest {
                                .anyMatch(an -> an.getAttributeName().equals("username")));
         assertTrue(eg.getAttributeNodes().stream()
                      .anyMatch(an -> an.getAttributeName().equals("name")));
+    }
+
+    @Test
+    void addAttributesToLoadAddsSubgraphToEntityGraph() {
+        final EntityType<Organization> etOrg = em.getMetamodel().entity(Organization.class);
+        final EntityType<Person> etPerson = em.getMetamodel().entity(Person.class);
+        final EntityGraph<Organization> eg = new EntityGraphImpl<>(etOrg, em.getMetamodel()::entity);
+        sut.addAttributesToLoad(eg, List.of(etOrg.getDeclaredAttribute("member"),
+                                            etPerson.getDeclaredAttribute("givenName"),
+                                            etPerson.getDeclaredAttribute("familyName"),
+                                            etOrg.getDeclaredAttribute("name")));
+
+        final Optional<AttributeNode<?>> memberNode = eg.getAttributeNodes().stream()
+                                                         .filter(an -> an.getAttributeName().equals("member")).
+                                                         findFirst();
+        assertTrue(memberNode.isPresent());
+        assertEquals(1, memberNode.get().getSubgraphs().size());
+        final Subgraph<?> userSubgraph = memberNode.get().getSubgraphs().get(Person.class);
+        assertTrue(userSubgraph.getAttributeNodes().stream()
+                               .anyMatch(an -> an.getAttributeName().equals("givenName")));
+        assertTrue(userSubgraph.getAttributeNodes().stream()
+                               .anyMatch(an -> an.getAttributeName().equals("familyName")));
     }
 }

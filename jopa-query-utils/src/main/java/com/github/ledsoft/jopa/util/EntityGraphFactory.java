@@ -1,29 +1,20 @@
 package com.github.ledsoft.jopa.util;
 
-import cz.cvut.kbss.jopa.model.AttributeNode;
 import cz.cvut.kbss.jopa.model.EntityGraph;
 import cz.cvut.kbss.jopa.model.EntityGraphImpl;
 import cz.cvut.kbss.jopa.model.Subgraph;
 import cz.cvut.kbss.jopa.model.metamodel.Attribute;
 import cz.cvut.kbss.jopa.model.metamodel.EntityType;
-import cz.cvut.kbss.jopa.model.metamodel.IdentifiableType;
 import cz.cvut.kbss.jopa.model.metamodel.Metamodel;
-import cz.cvut.kbss.jopa.model.metamodel.PluralAttribute;
 import cz.cvut.kbss.jopa.model.query.criteria.CriteriaQuery;
 import cz.cvut.kbss.jopa.model.query.criteria.Expression;
 import cz.cvut.kbss.jopa.query.criteria.PathImpl;
 import cz.cvut.kbss.jopa.query.criteria.expressions.AbstractComparisonExpression;
 import cz.cvut.kbss.jopa.query.criteria.expressions.AbstractFunctionExpression;
-import cz.cvut.kbss.jopa.utils.IdentifierTransformer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * Utility class for creating entity graphs.
@@ -105,78 +96,6 @@ public class EntityGraphFactory {
     public <T> void addAttributesToLoad(EntityGraph<T> entityGraph, List<Attribute<?, ?>> attributes) {
         Objects.requireNonNull(entityGraph);
         Objects.requireNonNull(attributes);
-        final EntityGraphImpl<T> eg = (EntityGraphImpl<T>) entityGraph;
-        final Map<IdentifiableType<?>, Set<Subgraph<?>>> subgraphsByDeclaringType = collectSubgraphs(eg);
-        final EntityType<T> rootType = metamodel.entity(eg.getClassType());
-        final Set<IdentifiableType<? super T>> rootHierarchy = mapEntityTypeHierarchy(rootType);
-
-        // TODO This will not support attributes of entities that are not already declared in the entity graph even though they are reachable from the root
-        for (Attribute<?, ?> attribute : attributes) {
-            final EntityType<?> attDeclaringType = (EntityType<?>) attribute.getDeclaringType();
-            final Set<IdentifiableType<?>> declaringHierarchy =
-                    (Set<IdentifiableType<?>>) mapEntityTypeHierarchy(attDeclaringType);
-            if (rootHierarchy.contains(attDeclaringType) || mapEntityTypeHierarchy(attDeclaringType).contains(
-                    rootType)) {
-                eg.addAttributeNodes((Attribute<T, ?>) attribute);
-            } else {
-                final Optional<Set<Subgraph<?>>> matchingType =
-                        declaringHierarchy.stream().filter(subgraphsByDeclaringType::containsKey).findFirst()
-                                          .map(subgraphsByDeclaringType::get);
-                if (matchingType.isPresent()) {
-                    for (Subgraph<?> subgraph : matchingType.get()) {
-                        addAttributeToSubgraph(subgraph, attribute);
-                    }
-                } else {
-                    throw new IllegalArgumentException(
-                            "Attribute " + attribute + " is not reachable from the entity graph root.");
-                }
-            }
-        }
-    }
-
-    private <T> Set<IdentifiableType<? super T>> mapEntityTypeHierarchy(EntityType<T> sourceEt) {
-        final Set<IdentifiableType<? super T>> hierarchy = new HashSet<>();
-        mapEntityTypeHierarchy(sourceEt, hierarchy);
-        return hierarchy;
-    }
-
-    private <T> void mapEntityTypeHierarchy(IdentifiableType<T> sourceEt, Set<IdentifiableType<? super T>> hierarchy) {
-        hierarchy.add(sourceEt);
-        sourceEt.getSupertypes()
-                .forEach(st -> mapEntityTypeHierarchy((IdentifiableType<T>) st, hierarchy));
-    }
-
-    private Map<IdentifiableType<?>, Set<Subgraph<?>>> collectSubgraphs(EntityGraphImpl<?> graph) {
-        final Map<IdentifiableType<?>, Set<Subgraph<?>>> result = new HashMap<>();
-        final EntityType<?> rootType = metamodel.entity(graph.getClassType());
-        collectSubgraphs(rootType, graph.getAttributeNodes(), result);
-        return result;
-    }
-
-    private void collectSubgraphs(EntityType<?> parentType, List<AttributeNode<?>> attributeNodes,
-                                  Map<IdentifiableType<?>, Set<Subgraph<?>>> result) {
-        for (AttributeNode<?> node : attributeNodes) {
-            final Attribute<?, ?> attribute = parentType.getAttribute(node.getAttributeName());
-            if (!attribute.isAssociation()) {
-                continue;
-            }
-            Class<?> valueType = attribute.isCollection() ? ((PluralAttribute) attribute).getBindableJavaType() :
-                                 attribute.getJavaType();
-            if (IdentifierTransformer.isValidIdentifierType(valueType)) {
-                continue;
-            }
-            final Set<IdentifiableType<?>> typeHierarchy =
-                    (Set<IdentifiableType<?>>) mapEntityTypeHierarchy(metamodel.entity(valueType));
-            for (Subgraph<?> subgraph : node.getSubgraphs().values()) {
-                typeHierarchy.forEach(type -> result.computeIfAbsent(type, k -> new HashSet<>()).add(subgraph));
-                final EntityType<?> subgraphType = metamodel.entity(subgraph.getClassType());
-                collectSubgraphs(subgraphType, subgraph.getAttributeNodes(), result);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <X> void addAttributeToSubgraph(Subgraph<X> subgraph, Attribute<?, ?> attribute) {
-        subgraph.addAttributeNodes((Attribute<X, ?>) attribute);
+        new EntityGraphAttributeAdder<>(metamodel, (EntityGraphImpl<T>) entityGraph).addAttributes(attributes);
     }
 }
