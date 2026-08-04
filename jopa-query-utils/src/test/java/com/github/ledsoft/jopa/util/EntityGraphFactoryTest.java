@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -130,10 +131,70 @@ class EntityGraphFactoryTest {
                                             etOrg.getDeclaredAttribute("name")));
 
         assertTrue(personSubgraph.getAttributeNodes().stream()
-                                  .anyMatch(an -> an.getAttributeName().equals("givenName")));
+                                 .anyMatch(an -> an.getAttributeName().equals("givenName")));
         assertTrue(personSubgraph.getAttributeNodes().stream()
-                                  .anyMatch(an -> an.getAttributeName().equals("familyName")));
+                                 .anyMatch(an -> an.getAttributeName().equals("familyName")));
         assertTrue(eg.getAttributeNodes().stream()
-                                  .anyMatch(an -> an.getAttributeName().equals("name")));
+                     .anyMatch(an -> an.getAttributeName().equals("name")));
+    }
+
+    @Test
+    void addAttributesToLoadAddsAttributesFromSuperclass() {
+        final EntityType<User> et = em.getMetamodel().entity(User.class);
+        final EntityGraph<User> eg = new EntityGraphImpl<>(et, em.getMetamodel()::entity);
+        sut.addAttributesToLoad(eg, List.of(et.getDeclaredAttribute("username"),
+                                            et.getAttribute("name")));
+
+        assertEquals(2, eg.getAttributeNodes().size());
+        assertTrue(eg.getAttributeNodes().stream().anyMatch(an -> an.getAttributeName().equals("username")));
+        assertTrue(eg.getAttributeNodes().stream().anyMatch(an -> an.getAttributeName().equals("name")));
+    }
+
+    @Test
+    void addAttributesToLoadAddsAttributesFromSubclass() {
+        final EntityType<Person> et = em.getMetamodel().entity(Person.class);
+        final EntityType<User> etUser = em.getMetamodel().entity(User.class);
+        final EntityGraph<Person> eg = new EntityGraphImpl<>(et, em.getMetamodel()::entity);
+        sut.addAttributesToLoad(eg, List.of(et.getDeclaredAttribute("name"),
+                                            etUser.getDeclaredAttribute("username")));
+
+        assertEquals(2, eg.getAttributeNodes().size());
+        assertTrue(eg.getAttributeNodes().stream().anyMatch(an -> an.getAttributeName().equals("name")));
+        assertTrue(eg.getAttributeNodes().stream().anyMatch(an -> an.getAttributeName().equals("username")));
+    }
+
+    @Test
+    void addAttributesToLoadAddsAttributesFromSuperclassInSubgraph() {
+        final EntityType<UserOrganization> etOrg = em.getMetamodel().entity(UserOrganization.class);
+        final EntityType<User> etUser = em.getMetamodel().entity(User.class);
+        final EntityGraph<UserOrganization> eg = new EntityGraphImpl<>(etOrg, em.getMetamodel()::entity);
+        final Subgraph<?> userSubgraph = eg.addSubgraph(etOrg.getDeclaredAttribute("member"));
+        sut.addAttributesToLoad(eg, List.of(etOrg.getDeclaredAttribute("name"), etUser.getAttribute("name"),
+                                            etUser.getAttribute("username")));
+
+        assertTrue(userSubgraph.getAttributeNodes().stream()
+                               .anyMatch(an -> an.getAttributeName().equals("name")));
+        assertTrue(userSubgraph.getAttributeNodes().stream()
+                               .anyMatch(an -> an.getAttributeName().equals("username")));
+        assertTrue(eg.getAttributeNodes().stream()
+                     .anyMatch(an -> an.getAttributeName().equals("name")));
+    }
+
+    @Test
+    void addAttributesToLoadAddsAttributesFromSubclassInSubgraph() {
+        final EntityType<Organization> etOrg = em.getMetamodel().entity(Organization.class);
+        final EntityType<Person> etPerson = em.getMetamodel().entity(Person.class);
+        final EntityType<User> etUser = em.getMetamodel().entity(User.class);
+        final EntityGraph<Organization> eg = new EntityGraphImpl<>(etOrg, em.getMetamodel()::entity);
+        final Subgraph<?> userSubgraph = eg.addSubgraph(etOrg.getDeclaredAttribute("member"));
+        sut.addAttributesToLoad(eg, List.of(etOrg.getDeclaredAttribute("name"), etPerson.getAttribute("name"),
+                                            etUser.getAttribute("username")));
+
+        assertTrue(userSubgraph.getAttributeNodes().stream()
+                               .anyMatch(an -> an.getAttributeName().equals("name")));
+        assertTrue(userSubgraph.getAttributeNodes().stream()
+                               .anyMatch(an -> an.getAttributeName().equals("username")));
+        assertTrue(eg.getAttributeNodes().stream()
+                     .anyMatch(an -> an.getAttributeName().equals("name")));
     }
 }
