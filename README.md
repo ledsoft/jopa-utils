@@ -64,6 +64,22 @@ Maven dependency:
 </dependency>
 ```
 
+### JOPA Query Utilities
+
+A collection of utilities for working with JOPA queries.
+
+1. `EntityGraphFactory` - factory for creating entity graphs based on Criteria queries and specified metamodel attributes.
+
+See the `EntityGraphFactoryTest` for usage examples.
+
+Maven dependency:
+```xml
+<dependency>
+    <groupId>com.github.ledsoft</groupId>
+    <artifactId>jopa-query-utils</artifactId>
+</dependency>
+```
+
 ## Links
 
 Useful links:

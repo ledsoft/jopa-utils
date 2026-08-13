@@ -6,7 +6,7 @@
 
     <groupId>com.github.ledsoft</groupId>
     <artifactId>jopa-utils</artifactId>
-    <version>0.1.1</version>
+    <version>0.2.0</version>
     <packaging>pom</packaging>
     <name>JOPA Utils</name>
     <description>
@@ -26,7 +26,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <cz.cvut.kbss.jopa.version>2.11.2-SNAPSHOT</cz.cvut.kbss.jopa.version>
+        <cz.cvut.kbss.jopa.version>2.11.2</cz.cvut.kbss.jopa.version>
     </properties>
 
     <dependencyManagement>
