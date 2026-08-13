@@ -220,4 +220,15 @@ class EntityGraphFactoryTest {
         assertTrue(userSubgraph.getAttributeNodes().stream()
                                .anyMatch(an -> an.getAttributeName().equals("familyName")));
     }
+
+    @Test
+    void addAttributesToLoadAddsSpecifiedSingularAttributesFromReferencedEntity_StaticMetamodel() {
+        final EntityType<Person> et = em.getMetamodel().entity(Person.class);
+        final EntityGraph<Person> eg = new EntityGraphImpl<>(et, em.getMetamodel()::entity);
+        final Subgraph<?> accountSubgraph = eg.addSubgraph(Person_.account);
+        sut.addAttributesToLoad(eg, List.of(OnlineAccount_.accountName));
+
+        assertTrue(accountSubgraph.getAttributeNodes().stream()
+                                  .anyMatch(an -> an.getAttributeName().equals("accountName")));
+    }
 }

@@ -40,4 +40,47 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>cz.cvut.kbss.jopa</groupId>
+                <artifactId>jopa-maven-plugin</artifactId>
+                <version>${cz.cvut.kbss.jopa.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-static-metamodel</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>modelgen</goal>
+                        </goals>
+                        <configuration>
+                            <source-package>com.github.ledsoft.jopa.util</source-package>
+                            <additional-sources>${project.basedir}/src/test/java</additional-sources>
+                            <output-directory>${project.build.directory}/generated-test-sources</output-directory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <execution>
+                        <id>add-generated-test-sources</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-test-sources</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
